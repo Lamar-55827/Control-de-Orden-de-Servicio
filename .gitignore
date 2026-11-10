@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Secretos y configuración local
+.env
+.streamlit/secrets.toml
+
+# Archivos generados
+*.zip
+*.log
+
+# IDE / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
