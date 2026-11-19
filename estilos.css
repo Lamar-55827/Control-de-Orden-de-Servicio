@@ -1,0 +1,189 @@
+/* ===== Dryg Tools - Identidad visual =====
+   Rojo industrial : #D32F2F
+   Antracita       : #1E272C
+   Azul institucional: #003B73
+*/
+
+/* Barra nativa de Streamlit en rojo industrial */
+header[data-testid="stHeader"] {
+    background: #D32F2F;
+}
+header[data-testid="stHeader"] * {
+    color: #FFFFFF !important;
+}
+
+.block-container {
+    padding-top: 4.2rem;
+    padding-bottom: 2rem;
+    max-width: 1300px;
+}
+
+/* ----- Header superior ----- */
+.top-header {
+    background: #D32F2F;
+    color: #FFFFFF;
+    padding: 16px 24px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.top-header .top-marca {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+.top-header .top-eslogan {
+    font-size: 0.95rem;
+    font-style: italic;
+    opacity: 0.95;
+}
+
+/* ----- Sidebar ----- */
+section[data-testid="stSidebar"] {
+    background: #1E272C;
+}
+section[data-testid="stSidebar"] * {
+    color: #ECEFF1;
+}
+section[data-testid="stSidebar"] hr {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+.sidebar-marca {
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+.sidebar-eslogan {
+    font-size: 0.75rem;
+    opacity: 0.75;
+    margin-bottom: 14px;
+}
+.usuario-box {
+    background: rgba(255, 255, 255, 0.07);
+    border-left: 4px solid #D32F2F;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+}
+.usuario-nombre {
+    font-weight: 700;
+    font-size: 1rem;
+}
+.usuario-rol {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    opacity: 0.8;
+}
+.estado-linea {
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: #A5D6A7;
+}
+.punto-verde {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: #4CAF50;
+    border-radius: 50%;
+    margin-right: 6px;
+    box-shadow: 0 0 6px #4CAF50;
+}
+section[data-testid="stSidebar"] .stButton > button {
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ECEFF1;
+}
+section[data-testid="stSidebar"] .stButton > button:hover {
+    background: #D32F2F;
+    border-color: #D32F2F;
+    color: #FFFFFF;
+}
+
+/* ----- Encabezados de módulo ----- */
+.modulo-header {
+    background: #003B73;
+    color: #FFFFFF;
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    border-bottom: 3px solid #D32F2F;
+}
+.modulo-header small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.82rem;
+    opacity: 0.85;
+}
+
+/* ----- Subtítulos ----- */
+.subtitulo-azul {
+    color: #003B73;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 14px 0 6px 0;
+    border-bottom: 2px solid #003B73;
+    padding-bottom: 3px;
+}
+
+/* ----- Badges de estado ----- */
+.badge-estado {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    color: #FFFFFF;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+/* ----- Tarjeta de login ----- */
+.login-card {
+    background: #FFFFFF;
+    border-top: 6px solid #D32F2F;
+    border-radius: 8px;
+    padding: 20px 24px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    margin-bottom: 14px;
+}
+.login-card .login-marca {
+    color: #D32F2F;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+.login-card .login-sistema {
+    color: #003B73;
+    font-weight: 700;
+    margin-top: 2px;
+}
+.login-card .login-eslogan {
+    color: #607D8B;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* ----- Métricas ----- */
+div[data-testid="stMetric"] {
+    background: #F4F6F8;
+    border-left: 5px solid #003B73;
+    border-radius: 6px;
+    padding: 10px 14px;
+}
+div[data-testid="stMetricValue"] {
+    color: #003B73;
+}
+
+/* ----- Botón primario ----- */
+.stButton > button[kind="primary"],
+.stFormSubmitButton > button[kind="primary"] {
+    background: #D32F2F;
+    border-color: #D32F2F;
+}

@@ -1,0 +1,13 @@
+PROYECTO PLANO (sin carpetas) - Dryg Tools
+
+1. Descomprime este zip.
+2. En GitHub: Add file > Upload files, selecciona TODOS los archivos y sueltalos.
+3. Borra de GitHub los archivos .zip viejos.
+4. En Streamlit Cloud > Settings > Secrets pega (ver secrets.toml.example):
+   DATABASE_URL = "postgresql://postgres:PASSWORD@db.xxxxx.supabase.co:5432/postgres"
+5. En Supabase ejecuta el contenido de schema.sql en el editor SQL.
+6. Streamlit Cloud > Manage app > Reboot app.
+7. Entra con admin / admin123 y cambia la contrasena.
+
+Opcional: config_tema.toml es el tema de colores. Para activarlo, en GitHub crea
+el archivo .streamlit/config.toml y pega ahi su contenido.

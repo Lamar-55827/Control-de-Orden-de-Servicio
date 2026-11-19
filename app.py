@@ -10,13 +10,13 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-# Garantiza que config/, database/ y modules/ se encuentren sin importar
+# Garantiza que los módulos del proyecto se encuentren sin importar
 # desde dónde se ejecute la app (local, Streamlit Cloud, etc.).
 _RAIZ = Path(__file__).resolve().parent
 if str(_RAIZ) not in sys.path:
     sys.path.insert(0, str(_RAIZ))
 
-from config.settings import (
+from config_settings import (
     APP_NOMBRE,
     EMPRESA,
     ESLOGAN,
@@ -34,11 +34,11 @@ from config.settings import (
     TIPOS_SERVICIO,
     tiene_permiso,
 )
-from database import clientes as db_clientes
-from database import reportes as db_reportes
-from database import usuarios as db_usuarios
-from modules.login import cerrar_sesion, render_login
-from modules.pdf_generator import generar_pdf_reporte
+import db_clientes
+import db_reportes
+import db_usuarios
+from pantalla_login import cerrar_sesion, render_login
+from generador_pdf import generar_pdf_reporte
 
 BASE_DIR = Path(__file__).parent
 
@@ -54,7 +54,7 @@ st.set_page_config(
 # Utilidades de interfaz
 # ---------------------------------------------------------------------------
 def cargar_css():
-    ruta = BASE_DIR / "assets" / "estilos.css"
+    ruta = BASE_DIR / "estilos.css"
     if ruta.exists():
         st.markdown(f"<style>{ruta.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
