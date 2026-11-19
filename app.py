@@ -4,10 +4,17 @@ Ejecutar con:  streamlit run app.py
 """
 
 import html
+import sys
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
+# Garantiza que config/, database/ y modules/ se encuentren sin importar
+# desde dónde se ejecute la app (local, Streamlit Cloud, etc.).
+_RAIZ = Path(__file__).resolve().parent
+if str(_RAIZ) not in sys.path:
+    sys.path.insert(0, str(_RAIZ))
 
 from config.settings import (
     APP_NOMBRE,
