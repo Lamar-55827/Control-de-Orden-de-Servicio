@@ -113,11 +113,9 @@ def mostrar_error(error):
 def inicializar_admin_por_defecto():
     """Garantiza que exista el usuario inicial Admi / 200012 si no hay administradores."""
     try:
-        # Intenta usar la función de tu módulo si existe
         if hasattr(db_usuarios, "asegurar_admin_inicial"):
             db_usuarios.asegurar_admin_inicial()
 
-        # Verifica si ya existe algún usuario en la BD; si está vacía, crea Admi / 200012
         usuarios = db_usuarios.listar_usuarios()
         if not usuarios:
             db_usuarios.crear_usuario(
@@ -586,7 +584,6 @@ def pagina_usuarios(usuario):
         ["👤 Mi perfil (Admin)", "➕ Nuevo usuario", "👥 Usuarios del sistema"]
     )
 
-    # --- Pestaña 1: Editar tu propio usuario (Admi) y contraseña ---
     with tab_perfil:
         subtitulo("Actualizar mis credenciales de administrador")
         with st.form("form_mi_perfil"):
@@ -608,7 +605,6 @@ def pagina_usuarios(usuario):
                 if nueva_pass and len(nueva_pass) < 6:
                     raise ValueError("La contraseña debe tener al menos 6 caracteres.")
 
-                # Actualiza nombre/username si tu db_usuarios tiene actualizar_usuario
                 if hasattr(db_usuarios, "actualizar_usuario"):
                     db_usuarios.actualizar_usuario(
                         usuario["id"],
@@ -618,13 +614,12 @@ def pagina_usuarios(usuario):
                     )
                 else:
                     raise ValueError(
-                        "Agrega la función 'actualizar_usuario' en db_usuarios.py (ver instrucciones)."
+                        "Falta la función 'actualizar_usuario' en db_usuarios.py."
                     )
 
                 if nueva_pass:
                     db_usuarios.cambiar_password(usuario["id"], nueva_pass, usuario)
 
-                # Actualiza la sesión activa inmediatamente
                 st.session_state["usuario"]["username"] = nuevo_username.strip()
                 st.session_state["usuario"]["nombre_completo"] = nuevo_nombre.strip()
 
@@ -633,7 +628,6 @@ def pagina_usuarios(usuario):
             except Exception as error:
                 mostrar_error(error)
 
-    # --- Pestaña 2: Crear nuevos usuarios ---
     with tab_nuevo:
         with st.form("form_usuario_nuevo", clear_on_submit=True):
             c1, c2 = st.columns(2)
@@ -650,7 +644,6 @@ def pagina_usuarios(usuario):
             except Exception as error:
                 mostrar_error(error)
 
-    # --- Pestaña 3: Lista y administración de otros usuarios ---
     with tab_lista:
         try:
             lista = db_usuarios.listar_usuarios()
@@ -735,27 +728,3 @@ def main():
 
 
 main()
-2. Qué revisar en db_usuarios.py y pantalla_login.py
-Como app.py importa db_usuarios y pantalla_login, verifica estos 3 puntos en esos archivos para que Admi / 200012 funcione sin problemas:
-
-En db_usuarios.py (asegurar_admin_inicial): Asegúrate de que cree el usuario con username="Admi" y password="200012", y no fuerce .lower() en el username si quieres iniciar sesión con la A mayúscula (Admi).
-
-En pantalla_login.py: Revisa que al leer el input del usuario en el login no tenga .lower() (es decir, que use username.strip(), no username.strip().lower()), de lo contrario al escribir Admi buscará admi en la base de datos y no lo encontrará.
-
-En db_usuarios.py (para cambiar tu nombre de usuario): Agrega esta función (adaptando la conexión SQL a la que ya usas en ese archivo) para que la pestaña "Mi perfil (Admin)" pueda cambiar tu username y nombre_completo:
-
-Python
-def actualizar_usuario(usuario_id, username, nombre_completo, actor=None):
-    # Usa la misma conexión a BD que tienes en db_usuarios.py
-    with obtener_conexion() as conn:
-        existe = conn.execute(
-            "SELECT id FROM usuarios WHERE username = ? AND id != ?",
-            (username, usuario_id),
-        ).fetchone()
-        if existe:
-            raise ValueError(f"El nombre de usuario «{username}» ya está en uso.")
-        conn.execute(
-            "UPDATE usuarios SET username = ?, nombre_completo = ? WHERE id = ?",
-            (username, nombre_completo, usuario_id),
-        )
-        conn.commit()
