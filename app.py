@@ -10,8 +10,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-# Garantiza que los módulos del proyecto se encuentren sin importar
-# desde dónde se ejecute la app (local, Streamlit Cloud, etc.).
 _RAIZ = Path(__file__).resolve().parent
 if str(_RAIZ) not in sys.path:
     sys.path.insert(0, str(_RAIZ))
@@ -94,7 +92,6 @@ def badge_estado(estado):
 
 
 def flash(mensaje, tipo="success"):
-    """Guarda un mensaje para mostrarlo después de un st.rerun()."""
     st.session_state["_flash"] = (tipo, mensaje)
 
 
@@ -113,10 +110,25 @@ def mostrar_error(error):
         st.caption(f"Detalle técnico: {error}")
 
 
-@st.cache_resource(show_spinner=False)
-def _inicializar_bd():
-    db_usuarios.asegurar_admin_inicial()
-    return True
+def inicializar_admin_por_defecto():
+    """Garantiza que exista el usuario inicial Admi / 200012 si no hay administradores."""
+    try:
+        # Intenta usar la función de tu módulo si existe
+        if hasattr(db_usuarios, "asegurar_admin_inicial"):
+            db_usuarios.asegurar_admin_inicial()
+
+        # Verifica si ya existe algún usuario en la BD; si está vacía, crea Admi / 200012
+        usuarios = db_usuarios.listar_usuarios()
+        if not usuarios:
+            db_usuarios.crear_usuario(
+                username="Admi",
+                nombre_completo="Administrador Principal",
+                password="200012",
+                rol=ROL_ADMIN,
+                actor=None,
+            )
+    except Exception as e:
+        st.error(f"Error al inicializar la base de datos o el usuario Admi: {e}")
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +144,7 @@ def render_sidebar(usuario):
         st.markdown(
             f'<div class="usuario-box"><div class="usuario-nombre">{html.escape(usuario["nombre_completo"])}</div>'
             f'<div class="usuario-rol">{html.escape(ROL_ETIQUETAS.get(usuario["rol"], usuario["rol"]))}</div>'
-            f'<div class="estado-linea"><span class="punto-verde"></span>En Línea</div></div>',
+            f'<div class="estado-linea"><span class="punto-verde"></span>En Línea ({html.escape(usuario["username"])})</div></div>',
             unsafe_allow_html=True,
         )
         seleccion = st.radio(
@@ -142,7 +154,7 @@ def render_sidebar(usuario):
             key="menu",
         )
         st.divider()
-        if st.button("🚪 Cerrar sesión"):
+        if st.button("🚪 Cerrar sesión", use_container_width=True):
             cerrar_sesion()
             st.rerun()
     return seleccion
@@ -180,7 +192,7 @@ def pagina_inicio(usuario):
                     for r in ultimos
                 ]
             )
-            st.dataframe(df, hide_index=True)
+            st.dataframe(df, hide_index=True, use_container_width=True)
         else:
             st.info("Aún no hay reportes registrados.")
 
@@ -194,7 +206,6 @@ def pagina_inicio(usuario):
 # Módulo: Clientes
 # ---------------------------------------------------------------------------
 def _form_cliente(clave, valores=None, etiqueta_boton="Guardar cliente", limpiar=True):
-    """Dibuja el formulario de cliente. Devuelve (enviado, datos)."""
     v = valores or {}
     with st.form(clave, clear_on_submit=limpiar):
         c1, c2 = st.columns(2)
@@ -226,8 +237,7 @@ def pagina_clientes(usuario):
     encabezado_modulo("Registro de Clientes", "Registra y consulta clientes")
     mostrar_flash()
 
-    pestanas = ["➕ Registrar cliente", "🔎 Consultar clientes"]
-    tab_registro, tab_consulta = st.tabs(pestanas)
+    tab_registro, tab_consulta = st.tabs(["➕ Registrar cliente", "🔎 Consultar clientes"])
 
     with tab_registro:
         if not tiene_permiso(usuario["rol"], "clientes.crear"):
@@ -270,7 +280,7 @@ def pagina_clientes(usuario):
                 for c in clientes
             ]
         )
-        st.dataframe(df, hide_index=True)
+        st.dataframe(df, hide_index=True, use_container_width=True)
 
         if tiene_permiso(usuario["rol"], "clientes.editar"):
             subtitulo("Editar cliente (solo administrador)")
@@ -383,7 +393,6 @@ def _detalle_reporte(usuario, reporte_id):
     st.markdown("**Diagnóstico / trabajo realizado**")
     st.write(reporte["diagnostico"] or "—")
 
-    # --- PDF ---
     if tiene_permiso(usuario["rol"], "reportes.pdf"):
         try:
             pdf = generar_pdf_reporte(reporte, cliente, historial, evidencias)
@@ -397,7 +406,6 @@ def _detalle_reporte(usuario, reporte_id):
         except Exception as error:
             st.error(f"No se pudo generar el PDF: {error}")
 
-    # --- Cambio de estado ---
     permitidos = db_reportes.estados_permitidos(usuario, reporte)
     if permitidos:
         subtitulo("Cambiar estado")
@@ -419,7 +427,6 @@ def _detalle_reporte(usuario, reporte_id):
             except Exception as error:
                 mostrar_error(error)
 
-    # --- Asignación de técnico ---
     if tiene_permiso(usuario["rol"], "reportes.asignar"):
         try:
             tecnicos = db_usuarios.listar_tecnicos()
@@ -439,7 +446,6 @@ def _detalle_reporte(usuario, reporte_id):
                 except Exception as error:
                     mostrar_error(error)
 
-    # --- Evidencias ---
     subtitulo("Evidencias")
     if evidencias:
         for ev in evidencias:
@@ -485,7 +491,6 @@ def _detalle_reporte(usuario, reporte_id):
                 except Exception as error:
                     mostrar_error(error)
 
-    # --- Historial ---
     subtitulo("Historial")
     if historial:
         df = pd.DataFrame(
@@ -500,7 +505,7 @@ def _detalle_reporte(usuario, reporte_id):
                 for h in historial
             ]
         )
-        st.dataframe(df, hide_index=True)
+        st.dataframe(df, hide_index=True, use_container_width=True)
 
 
 def pagina_reportes(usuario):
@@ -556,7 +561,7 @@ def pagina_reportes(usuario):
                 for r in reportes
             ]
         )
-        st.dataframe(df, hide_index=True)
+        st.dataframe(df, hide_index=True, use_container_width=True)
 
         opciones = {f"{r['folio']} — {r['cliente_nombre']} — {r['equipo']}": r["id"] for r in reportes}
         etiqueta = st.selectbox("Selecciona un reporte para ver el detalle", list(opciones), key="sel_reporte")
@@ -567,18 +572,68 @@ def pagina_reportes(usuario):
 
 
 # ---------------------------------------------------------------------------
-# Módulo: Usuarios (solo administrador)
+# Módulo: Usuarios y Perfil de Administrador
 # ---------------------------------------------------------------------------
 def pagina_usuarios(usuario):
     if not tiene_permiso(usuario["rol"], "usuarios.gestionar"):
         st.error("No tienes permiso para acceder a este módulo.")
         return
 
-    encabezado_modulo("Gestión de Usuarios", "Alta de usuarios, roles y contraseñas")
+    encabezado_modulo("Gestión de Usuarios", "Alta de usuarios, roles, contraseñas y mi perfil")
     mostrar_flash()
 
-    tab_nuevo, tab_lista = st.tabs(["➕ Nuevo usuario", "👥 Usuarios del sistema"])
+    tab_perfil, tab_nuevo, tab_lista = st.tabs(
+        ["👤 Mi perfil (Admin)", "➕ Nuevo usuario", "👥 Usuarios del sistema"]
+    )
 
+    # --- Pestaña 1: Editar tu propio usuario (Admi) y contraseña ---
+    with tab_perfil:
+        subtitulo("Actualizar mis credenciales de administrador")
+        with st.form("form_mi_perfil"):
+            c1, c2 = st.columns(2)
+            nuevo_username = c1.text_input("Nombre de usuario (Login) *", value=usuario["username"])
+            nuevo_nombre = c2.text_input("Nombre completo *", value=usuario["nombre_completo"])
+            nueva_pass = c1.text_input(
+                "Nueva contraseña (dejar vacío para mantener la actual)", type="password"
+            )
+            confirmar_pass = c2.text_input("Confirmar nueva contraseña", type="password")
+            guardar_perfil = st.form_submit_button("Guardar mis cambios", type="primary")
+
+        if guardar_perfil:
+            try:
+                if not nuevo_username.strip() or not nuevo_nombre.strip():
+                    raise ValueError("El usuario y el nombre completo son obligatorios.")
+                if nueva_pass and nueva_pass != confirmar_pass:
+                    raise ValueError("Las contraseñas no coinciden.")
+                if nueva_pass and len(nueva_pass) < 6:
+                    raise ValueError("La contraseña debe tener al menos 6 caracteres.")
+
+                # Actualiza nombre/username si tu db_usuarios tiene actualizar_usuario
+                if hasattr(db_usuarios, "actualizar_usuario"):
+                    db_usuarios.actualizar_usuario(
+                        usuario["id"],
+                        username=nuevo_username.strip(),
+                        nombre_completo=nuevo_nombre.strip(),
+                        actor=usuario,
+                    )
+                else:
+                    raise ValueError(
+                        "Agrega la función 'actualizar_usuario' en db_usuarios.py (ver instrucciones)."
+                    )
+
+                if nueva_pass:
+                    db_usuarios.cambiar_password(usuario["id"], nueva_pass, usuario)
+
+                # Actualiza la sesión activa inmediatamente
+                st.session_state["usuario"]["username"] = nuevo_username.strip()
+                st.session_state["usuario"]["nombre_completo"] = nuevo_nombre.strip()
+
+                flash("Tus datos de administrador se actualizaron correctamente.")
+                st.rerun()
+            except Exception as error:
+                mostrar_error(error)
+
+    # --- Pestaña 2: Crear nuevos usuarios ---
     with tab_nuevo:
         with st.form("form_usuario_nuevo", clear_on_submit=True):
             c1, c2 = st.columns(2)
@@ -589,17 +644,22 @@ def pagina_usuarios(usuario):
             enviado = st.form_submit_button("Crear usuario", type="primary")
         if enviado:
             try:
-                db_usuarios.crear_usuario(username, nombre, password, rol, actor=usuario)
-                flash(f"Usuario «{username.strip().lower()}» creado correctamente.")
+                db_usuarios.crear_usuario(username.strip(), nombre.strip(), password, rol, actor=usuario)
+                flash(f"Usuario «{username.strip()}» creado correctamente.")
                 st.rerun()
             except Exception as error:
                 mostrar_error(error)
 
+    # --- Pestaña 3: Lista y administración de otros usuarios ---
     with tab_lista:
         try:
             lista = db_usuarios.listar_usuarios()
         except Exception as error:
             mostrar_error(error)
+            return
+
+        if not lista:
+            st.info("No hay usuarios registrados.")
             return
 
         df = pd.DataFrame(
@@ -614,22 +674,23 @@ def pagina_usuarios(usuario):
                 for u in lista
             ]
         )
-        st.dataframe(df, hide_index=True)
+        st.dataframe(df, hide_index=True, use_container_width=True)
 
-        subtitulo("Administrar usuario")
+        subtitulo("Administrar usuario seleccionado")
         opciones = {f"{u['nombre_completo']} ({u['username']})": u for u in lista}
         etiqueta = st.selectbox("Selecciona un usuario", list(opciones), key="sel_usuario")
         elegido = opciones[etiqueta]
 
-        accion = "Desactivar" if elegido["activo"] else "Activar"
-        resultado = "desactivado" if elegido["activo"] else "activado"
-        if st.button(f"{accion} usuario", key=f"toggle_{elegido['id']}"):
-            try:
-                db_usuarios.cambiar_estado_activo(elegido["id"], not elegido["activo"], usuario)
-                flash(f"Usuario {resultado} correctamente.")
-                st.rerun()
-            except Exception as error:
-                mostrar_error(error)
+        if elegido["id"] != usuario["id"]:
+            accion = "Desactivar" if elegido["activo"] else "Activar"
+            resultado = "desactivado" if elegido["activo"] else "activado"
+            if st.button(f"{accion} usuario", key=f"toggle_{elegido['id']}"):
+                try:
+                    db_usuarios.cambiar_estado_activo(elegido["id"], not elegido["activo"], usuario)
+                    flash(f"Usuario {resultado} correctamente.")
+                    st.rerun()
+                except Exception as error:
+                    mostrar_error(error)
 
         with st.form(f"form_password_{elegido['id']}", clear_on_submit=True):
             nueva = st.text_input("Nueva contraseña", type="password")
@@ -656,12 +717,7 @@ PAGINAS = {
 
 def main():
     cargar_css()
-
-    try:
-        _inicializar_bd()
-    except Exception:
-        pass  # El login mostrará el detalle del error de conexión
-
+    inicializar_admin_por_defecto()
     encabezado_top()
 
     usuario = st.session_state.get("usuario")
@@ -671,7 +727,6 @@ def main():
 
     seleccion = render_sidebar(usuario)
 
-    # Validación de rol desde la lógica: solo se permiten las páginas de su menú
     if seleccion not in MENU_POR_ROL.get(usuario["rol"], []):
         st.error("No tienes permiso para acceder a este módulo.")
         return
@@ -680,3 +735,27 @@ def main():
 
 
 main()
+2. Qué revisar en db_usuarios.py y pantalla_login.py
+Como app.py importa db_usuarios y pantalla_login, verifica estos 3 puntos en esos archivos para que Admi / 200012 funcione sin problemas:
+
+En db_usuarios.py (asegurar_admin_inicial): Asegúrate de que cree el usuario con username="Admi" y password="200012", y no fuerce .lower() en el username si quieres iniciar sesión con la A mayúscula (Admi).
+
+En pantalla_login.py: Revisa que al leer el input del usuario en el login no tenga .lower() (es decir, que use username.strip(), no username.strip().lower()), de lo contrario al escribir Admi buscará admi en la base de datos y no lo encontrará.
+
+En db_usuarios.py (para cambiar tu nombre de usuario): Agrega esta función (adaptando la conexión SQL a la que ya usas en ese archivo) para que la pestaña "Mi perfil (Admin)" pueda cambiar tu username y nombre_completo:
+
+Python
+def actualizar_usuario(usuario_id, username, nombre_completo, actor=None):
+    # Usa la misma conexión a BD que tienes en db_usuarios.py
+    with obtener_conexion() as conn:
+        existe = conn.execute(
+            "SELECT id FROM usuarios WHERE username = ? AND id != ?",
+            (username, usuario_id),
+        ).fetchone()
+        if existe:
+            raise ValueError(f"El nombre de usuario «{username}» ya está en uso.")
+        conn.execute(
+            "UPDATE usuarios SET username = ?, nombre_completo = ? WHERE id = ?",
+            (username, nombre_completo, usuario_id),
+        )
+        conn.commit()
